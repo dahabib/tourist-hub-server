@@ -12,7 +12,8 @@ const app = express();
 app.use(cors());
 app.use(bodyParser.json());
 app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static('tourist-hub'));
+app.use(express.static('services'));
+app.use(express.static('guides'));
 app.use(fileUpload());
 
 const port = process.env.PORT || 5000;
@@ -25,7 +26,7 @@ const client = new MongoClient(uri, { useNewUrlParser: true, useUnifiedTopology:
 
 client.connect(err => {
     const servicesCollection = client.db("tourist-hub").collection("services");
-    const bookingsCollection = client.db("tourist-hub").collection("orders");
+    const bookingsCollection = client.db("tourist-hub").collection("bookings");
     const reviewsCollection = client.db("tourist-hub").collection("reviews");
     const placesCollection = client.db("tourist-hub").collection("places");
     const guidesCollection = client.db("tourist-hub").collection("guides");
@@ -85,7 +86,6 @@ client.connect(err => {
     app.post('/addGuide', (req, res) => {
         const name = req.body.name;
         const email = req.body.email;
-        const fb = req.body.fb;
         const file = req.files.file;
         const newImg = file.data;
         const encImg = newImg.toString('base64');
@@ -96,7 +96,7 @@ client.connect(err => {
             img: Buffer.from(encImg, 'base64')
         };
 
-        servicesCollection.insertOne({ name, email, fb, image })
+        servicesCollection.insertOne({ name, email, image })
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
@@ -159,5 +159,5 @@ client.connect(err => {
 
 });
 
-app.listen(port)
-console.log('listening on port', port)
+app.listen(port);
+console.log('listening on port', port);
