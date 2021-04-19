@@ -6,8 +6,15 @@ const fileUpload = require('express-fileupload');
 const admin = require('firebase-admin');
 require('dotenv').config();
 
-const uri = `mongodb+srv://Muntaha2017:rhmPWvvYiHeFFcnM@cluster0.7ihro.mongodb.net/tourist-hub?retryWrites=true&w=majority`;
+const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7ihro.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
 
+const app = express();
+
+app.use(cors());
+app.use(bodyParser.json());
+app.use(bodyParser.urlencoded({extended: false}));
+app.use(express.static('tourist-hub'));
+app.use(fileUpload());
 
 var serviceAccount = require("./configs/serviceAccountKey.json");
 
@@ -15,14 +22,6 @@ admin.initializeApp({
   credential: admin.credential.cert(serviceAccount),
   database: "https://tourist-hub-bd.firebaseapp.com"
 });
-
-
-const app = express();
-
-app.use(bodyParser.json());
-app.use(cors());
-app.use(express.static('tourist-hub'));
-app.use(fileUpload());
 
 const port = process.env.PORT || 5000;
 
