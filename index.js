@@ -15,7 +15,6 @@ app.use(bodyParser.urlencoded({extended: false}));
 app.use(express.static('tourist-hub'));
 app.use(fileUpload());
 
-
 const port = process.env.PORT || 5000;
 
 app.get('/', (req, res) => {
@@ -67,6 +66,7 @@ client.connect(err => {
         const location = req.body.location;
         const cost = req.body.cost;
         const file = req.files.file;
+        const createdBy = req.body.createdBy;
         const newImg = file.data;
         const encImg = newImg.toString('base64');
 
@@ -76,7 +76,7 @@ client.connect(err => {
             img: Buffer.from(encImg, 'base64')
         };
 
-        servicesCollection.insertOne({ name, description, location, cost, image })
+        servicesCollection.insertOne({ name, description, location, cost, createdBy, image })
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
