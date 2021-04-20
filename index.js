@@ -2,7 +2,6 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const MongoClient = require('mongodb').MongoClient;
-const fileUpload = require('express-fileupload');
 require('dotenv').config();
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7ihro.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -11,10 +10,7 @@ const app = express();
 
 app.use(cors());
 app.use(bodyParser.json());
-app.use(bodyParser.urlencoded({extended: false}));
-app.use(express.static('services'));
-app.use(express.static('guides'));
-app.use(fileUpload());
+app.use(bodyParser.urlencoded({ extended: false }));
 
 const port = process.env.PORT || 5000;
 
@@ -51,71 +47,37 @@ client.connect(err => {
         const email = req.body.email;
         userCollection.find({ email: email })
             .toArray((err, users) => {
-                console.log(users);
-                if (user.role === 'user') {
-                    bookingsCollection.find({ email: email })
-                        .toArray((err, documents) => {
-                            res.send(documents);
-                        })
-                }
+
+            })
+    })
+
+    app.post('/addUser', (req, res) => {
+        const user = req.body;
+        userCollection.insertOne({ user })
+            .then(result => {
+                res.send(result.insertedCount > 0);
             })
     })
 
     app.post('/addService', (req, res) => {
-        const name = req.body.name;
-        const description = req.body.description;
-        const location = req.body.location;
-        const cost = req.body.cost;
-        const file = req.files.file;
-        const createdBy = req.body.createdBy;
-        const newImg = file.data;
-        const encImg = newImg.toString('base64');
-
-        var image = {
-            contentType: file.mimetype,
-            size: file.size,
-            img: Buffer.from(encImg, 'base64')
-        };
-
-        servicesCollection.insertOne({ name, description, location, cost, createdBy, image })
+        const service = req.body;
+        servicesCollection.insertOne({ service })
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
     })
 
     app.post('/addGuide', (req, res) => {
-        const name = req.body.name;
-        const email = req.body.email;
-        const file = req.files.file;
-        const newImg = file.data;
-        const encImg = newImg.toString('base64');
-
-        var image = {
-            contentType: file.mimetype,
-            size: file.size,
-            img: Buffer.from(encImg, 'base64')
-        };
-
-        servicesCollection.insertOne({ name, email, image })
+        const guide = req.body;
+        guidesCollection.insertOne({ guide })
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
     })
 
     app.post('/addPlace', (req, res) => {
-        const name = req.body.name;
-        const description = req.body.description;
-        const file = req.files.file;
-        const newImg = file.data;
-        const encImg = newImg.toString('base64');
-
-        var image = {
-            contentType: file.mimetype,
-            size: file.size,
-            img: Buffer.from(encImg, 'base64')
-        };
-
-        placesCollection.insertOne({ name, description, image })
+        const place = req.body;
+        placesCollection.insertOne({ place })
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
@@ -123,12 +85,18 @@ client.connect(err => {
 
     app.post('/addReview', (req, res) => {
         const review = req.body;
-
         reviewsCollection.insertOne(review)
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
     })
+
+    app.get('/services', (req, res) => {
+        servicesCollection.find({})
+            .toArray((err, documents) => {
+                res.send(documents);
+            })
+    });
 
     app.get('/guides', (req, res) => {
         guidesCollection.find({})
@@ -137,25 +105,21 @@ client.connect(err => {
             })
     });
 
-    // app.post('/isAdmin', (req, res) => {
-    //     const email = req.body.email;
-    //     userCollection.find({ role: role })
-    //         .toArray((err, admins) => {
-    //             res.send(admins.length > 0);
-    //         })
-    //         userCollection.find({ email: email })
-    //         .toArray((err, users) => {
-    //             const filter = { role: role }
-    //             if (users.length === 0) {
-    //                 filter.email = email;
-    //             }
-    //             userCollection.find(filter)
-    //                 .toArray((err, documents) => {
-    //                     console.log(email, date.date, doctors, documents)
-    //                     res.send(documents);
-    //                 })
-    //         })
-    // })
+    // user by email
+    app.get('/user', (req, res) => {
+        userCollection.find({ "user.email": req.query.email })
+        .toArray( (err, documents) => {
+            res.send(documents);
+        })
+    })
+
+    // all users
+    app.get('/users', (req, res) => {
+        userCollection.find({})
+            .toArray((err, documents) => {
+                res.send(documents);
+            })
+    })
 
 });
 
