@@ -2,6 +2,7 @@ const express = require('express');
 const bodyParser = require('body-parser');
 const cors = require('cors');
 const MongoClient = require('mongodb').MongoClient;
+const { ObjectID } = require('mongodb').ObjectID;
 require('dotenv').config();
 
 const uri = `mongodb+srv://${process.env.DB_USER}:${process.env.DB_PASS}@cluster0.7ihro.mongodb.net/${process.env.DB_NAME}?retryWrites=true&w=majority`;
@@ -36,6 +37,32 @@ client.connect(err => {
             })
     });
 
+    // bookings by user
+    app.get('/bookingsByUser', (req, res) => {
+        bookingsCollection.find({ email: req.query.email })
+        .toArray( (err, bookings) => {
+            console.log(bookings);
+            res.send(bookings);
+        })
+    });
+    
+    // bookings by user
+    app.get('/bookingsById', (req, res) => {
+        const id = req.query.id;
+        bookingsCollection.find({ _id: id })
+        .toArray( (err, items) => {
+            res.send(items);
+            console.log(items);
+        })
+    });
+
+    app.get('/service/:id', (req, res) => {
+        servicesCollection.find({ _id: ObjectID(req.params.id) })
+        .toArray( (err, service) => {
+            res.send(service[0]);
+        })
+    });
+
     app.get('/allBooking', (req, res) => {
         bookingsCollection.find({})
             .toArray((err, bookings) => {
@@ -43,13 +70,13 @@ client.connect(err => {
             })
     })
 
-    app.post('/bookingsByUser', (req, res) => {
-        const email = req.body.email;
-        userCollection.find({ email: email })
-            .toArray((err, users) => {
+    // app.post('/bookingsByUser', (req, res) => {
+    //     const email = req.body.email;
+    //     userCollection.find({ email: email })
+    //         .toArray((err, users) => {
 
-            })
-    })
+    //         })
+    // })
 
     app.post('/addUser', (req, res) => {
         const user = req.body;
@@ -77,7 +104,7 @@ client.connect(err => {
 
     app.post('/addPlace', (req, res) => {
         const place = req.body;
-        placesCollection.insertOne({ place })
+        placesCollection.insertOne({place})
             .then(result => {
                 res.send(result.insertedCount > 0);
             })
@@ -96,14 +123,28 @@ client.connect(err => {
             .toArray((err, documents) => {
                 res.send(documents);
             })
-    });
+    })
 
     app.get('/guides', (req, res) => {
         guidesCollection.find({})
             .toArray((err, guides) => {
                 res.send(guides);
             })
-    });
+    })
+
+    app.get('/places', (req, res) => {
+        placesCollection.find({})
+            .toArray((err, places) => {
+                res.send(places);
+            })
+    })
+
+    app.get('/reviews', (req, res) => {
+        reviewsCollection.find({})
+            .toArray((err, reviews) => {
+                res.send(reviews);
+            })
+    })
 
     // user by email
     app.get('/user', (req, res) => {
